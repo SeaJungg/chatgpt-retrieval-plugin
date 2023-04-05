@@ -3,6 +3,7 @@ import openai
 
 
 from tenacity import retry, wait_random_exponential, stop_after_attempt
+from sentence_transformers import SentenceTransformer
 
 
 @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(3))
@@ -19,6 +20,7 @@ def get_embeddings(texts: List[str]) -> List[List[float]]:
     Raises:
         Exception: If the OpenAI API call fails.
     """
+    """
     # Call the OpenAI API to get the embeddings
     response = openai.Embedding.create(input=texts, model="text-embedding-ada-002")
 
@@ -27,6 +29,15 @@ def get_embeddings(texts: List[str]) -> List[List[float]]:
 
     # Return the embeddings as a list of lists of floats
     return [result["embedding"] for result in data]
+    """
+    # Call local embedding model
+    data = []
+    for text in texts:
+        text = text[:600]
+        embedder = SentenceTransformer("jhgan/ko-sroberta-multitask")
+        query_embedding = embedder.encode(text, convert_to_numpy=True).tolist()
+        data.append(query_embedding)
+    return data
 
 
 @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(3))
